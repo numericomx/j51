@@ -1,9 +1,7 @@
 La clasificación en diferentes causas fue realizada usando la siguiente taxonomía sobre el campo "Causa(s) de la muerte" de la fuente oficial:
 
 Neumonía atípica: neu.*atip.* 
+Neumonía viral: neu.*viral.*
 Insuficiencia respiratoria: insuf.*resp.*
-Probable: ((proba|sospech).*(cov|coronavirus).*)|((cov|coronavirus).*(proba|sospech).*)
 Covid: cov.*|coronavirus.*
-Confirmado: ((confir|posit).*(cov|coronavirus).*)|((cov|coronavirus).*(confir|posit).*) 
-            Descartando aquellos casos que incluyen: no confirm.* 
 Otro: Ninguno de los anteriores.

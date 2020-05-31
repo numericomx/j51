@@ -1,39 +1,59 @@
+library(data.table)
 library(lubridate)
+library(patchwork)
 library(ggplot2)
-library(ggforce)
 
-df <- fread("data/defun.csv")
+df <- fread("defun.csv")
 df$fecha_defun <- dmy(df$fecha_defun)
 df$month <- month(df$fecha_defun)
 df$year <- year(df$fecha_defun)
 
-# Seleccionar casos del 2020
-df <- df[df$year == 2020, ]
+# Filtra registros de abril y mayo 2020
+df_j51 <- df[df$year == 2020 & df$month %in% c(4, 5)]
 
-df_venn <- data.frame(x = c(0, 0.866, -0.866),
-                      y = c(1, -0.5, -0.5),
-                      labels = c('COVID-19', 'NeumonÃ­a atÃ­pica', 'Insuficiencia respiratoria'))
+df_j51$covneum <- df_j51$Covid == 1
 
-ggplot(df_venn) +
-  geom_circle(aes(x0 = x, y0 = y, r = 1.5, fill = labels), alpha = .7, size = 1, colour = 'white') +
-  coord_fixed() +
-  theme_void() +
-  theme(legend.position = 'bottom') +
-  scale_fill_manual(values = c('#fc8d62', '#66c2a5', '#8da0cb')) +
-  scale_colour_manual(values = c( '#fc8d62', '#66c2a5', '#8da0cb'), guide = FALSE) +
-  labs(fill = NULL) +
-  annotate("text", 
-           x = c(0, 1.2, 0.8, -1.2, -0.8, 0, 0), 
-           y = c(1.2, -0.6, 0.5, -0.6, 0.5, -1, 0), 
-           label = c(nrow(df[df$Covid == 1 & df$Neumonia_atipica == 0 & df$Insuficiencia_respiratoria == 0, ]), # COVID
-                     nrow(df[df$Covid == 0 & df$Neumonia_atipica == 1 & df$Insuficiencia_respiratoria == 0, ]), # NeumonÃ­a 
-                     nrow(df[df$Covid == 1 & df$Neumonia_atipica == 1 & df$Insuficiencia_respiratoria == 0, ]), # COVID y neumonÃ­a
-                     nrow(df[df$Covid == 0 & df$Neumonia_atipica == 0 & df$Insuficiencia_respiratoria == 1, ]), # Insuficiencia
-                     nrow(df[df$Covid == 1 & df$Neumonia_atipica == 0 & df$Insuficiencia_respiratoria == 1, ]), # COVID e insuficiencia
-                     nrow(df[df$Covid == 0 & df$Neumonia_atipica == 1 & df$Insuficiencia_respiratoria == 1, ]), # Insuficiencia y neumonÃ­a 
-                     nrow(df[df$Covid == 1 & df$Neumonia_atipica == 1 & df$Insuficiencia_respiratoria == 1, ])), # Todos  
-           size = 5) + 
-  labs(title = "La neumonÃ­a atÃ­pica y el COVID19",
-       subtitle = "NÃºmero de actas de defunciÃ³n por causa de muerte,\ndiagrama de Venn, abr - may 2020",
-       caption = "Fuente: ElaboraciÃ³n propia con datos de la DirecciÃ³n General del Registro Civil.") 
+# Muertes por mes COVID-19 VS Otros
+deaths_by_month <- df_j51[, .N, by = .(month, covneum)]
+deaths_by_month$covid <- factor(deaths_by_month$covneum, levels = c(TRUE, FALSE), labels = c("Mencionan COVID-19", "Sin mención de COVID-19"))
 
+p1 <- ggplot(deaths_by_month) +
+  aes(x = factor(month, labels = c("abril", "mayo")), N, fill = covid, label = scales::comma(N)) +
+  geom_bar(stat = "identity") +
+  scale_y_continuous(labels = scales::comma) +
+  scale_fill_manual(values = c("#66c2a5", "#b6e2d4")) +
+  geom_text(color = "black",  size = 3,   position = position_stack(vjust = .55)) +
+  labs(title = "¿En cuántas actas de defunción se menciona a COVID-19?",
+       subtitle = "Número actas de defunción que mencionan* a COVID-19",
+       x = "",
+       y = "",
+       caption = "")+
+  guides(fill = guide_legend(title = "")) +
+  theme_light()
+
+# Filtra registros de abril y mayo 2020
+df_j51 <- df[df$year == 2020 & df$month %in% c(4, 5)]
+
+df_j51$covneum <- df_j51$Covid | df_j51$Neumonia_atipica |  df_j51$Neumonia_viral 
+
+# Muertes por mes COVID-19 + Neumonía atípica + Neumonía viral VS Otros
+deaths_by_month <- df_j51[, .N, by = .(month, covneum)]
+deaths_by_month$covid <- factor(deaths_by_month$covneum, levels = c(TRUE, FALSE), labels = c("COVID-19, \nNeumonía atípica o \nNeumonía viral", "Sin mención de las anteriores"))
+
+p2 <- ggplot(deaths_by_month) +
+  aes(x = factor(month, labels = c("abril", "mayo")), N, fill = covid, label = scales::comma(N, accuracy=1)) +
+  geom_bar(stat = "identity") +
+  scale_y_continuous(labels = scales::comma) +
+  scale_fill_manual(values = c("#66c2a5", "#b6e2d4")) +
+  geom_text(color = "black",  size = 3,   position = position_stack(vjust = .55)) +
+  labs(title = "",
+       subtitle = "Número actas de defunción que mencionan* a COVID-19, neumonía atípica o neumonía viral",
+       x = "",
+       y = "",
+       caption = "Fuente: Elaboración propia con datos de la Dirección General del Registro Civil.\n*Contienen términos (COV o CORONAVIRUS), (NEU y ATIP), o (NEU y VIRAL) respectivamente.")+
+  guides(fill = guide_legend(title = "")) +
+  theme_light()
+
+p <- p1/p2
+
+plot(p)

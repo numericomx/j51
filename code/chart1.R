@@ -1,44 +1,35 @@
-# --- CHART 1 ----
 library(data.table)
 library(lubridate)
+library(ggplot2)
 
-dfma <- fread("data/months2020.csv")
+df <- fread("defun.csv")
+df$fecha_defun <- dmy(df$fecha_defun)
+df$month <- month(df$fecha_defun)
+df$year <- year(df$fecha_defun)
 
-# Get incremental deaths per month
-counts_per_month <- dfma[,.(month, countd=c(count[1],na.omit(diff(count)))), by=.(juzgado)]
+enfermedades <- c("Covid", "Insuficiencia_respiratoria", "Neumonia_atipica", "Neumonia_viral")
+enf_factor <- factor(enfermedades, levels = enfermedades,  labels = c("COVID-19", 
+                                                                      "Insuficiencia respiratoria",
+                                                                      "Neumon韆 at韕ica", 
+                                                                      "Neumon韆 viral"))
 
-# Rename juzgados
-counts_per_month$juzgadolite <- "Todos los dem谩s"
-counts_per_month[juzgado==14,]$juzgadolite <- "Juzgado 14" 
-counts_per_month[juzgado==18,]$juzgadolite <- "Juzgado 18" 
-counts_per_month[juzgado==51,]$juzgadolite <- "Juzgado 51" 
-counts_per_month[juzgado %in% c(13,16,19),]$juzgadolite <- "Juzgado 13,16 y 19" 
+# Filtra registros de abril y mayo 2020
+df_pandemia <- df[df$year == 2020 & df$month %in% c(4, 5)]
 
-counts_per_month$juzgadolite <- factor(counts_per_month$juzgadolite, levels=rev(c("Todos los dem谩s", 
-                                                                                  "Juzgado 13,16 y 19" ,  
-                                                                                  "Juzgado 14", 
-                                                                                  "Juzgado 18",  
-                                                                                  "Juzgado 51")))
-# Aggregate totals
-df_chart <- counts_per_month[,.(total=sum(countd)), by=.(month,juzgadolite)] 
-total_per_month <- df_chart[, .(total_month=sum(total)), by= .(month)]
+# Tabla de frecuencias de menciones por enfermedad
+freq_ <- as.numeric(lapply(df_pandemia[, enfermedades, with = FALSE], sum))
+freq <- data.table(causa = enf_factor, N = as.numeric(freq_))
 
-df_chart_merge <- merge(df_chart, total_per_month, by="month" )
-
-#Plot
-ggplot(df_chart_merge)+
-  aes(x=factor(month, labels=c("enero", "febrero", "marzo", "abril", "mayo")), 
-      y=total, fill=juzgadolite, label=paste0(scales::comma(total),"\n", "(", scales::percent(total/total_month),")"))+
-  geom_bar(stat="identity")+
-  geom_text(size=2,   position = position_stack(vjust = .5))+
-  scale_y_continuous(labels=scales::comma)+
-  scale_fill_manual(values=c("#66c2a5", "#fc8d62", "#8da0cb", "#e78ac3", "#a6d854"))+
-  theme_light()+
-  guides(fill=guide_legend(title=""))+
-  xlab("")+
-  ylab("")+
-  labs(title = "El Juzgado 51 cuenta con alrededor del 32% de las actas de defunci贸n",
-       subtitle= "Distribuci贸n del n煤mero de actas de defunci贸n entre diferentes juzgados, 2020",
-       caption = "Fuente: Elaboraci贸n propia con datos de Mario Romero y Laurianne Despeghel.\n https://github.com/mariorz/folio-deceso.",
+ggplot(freq, 
+       aes(x = causa, y = N, fill = causa, label =  scales::comma(N))) +
+  geom_bar(stat = "identity") +
+  scale_y_continuous(labels = scales::comma) +
+  scale_fill_manual(values = c("#66c2a5", "#fc8d62", "#8da0cb", "#e78ac3")) +
+  geom_text(color = "black", size = 4, position = position_stack(vjust = .8)) +
+  labs(title = "Hay 6,488 actas de defunci髇 de la CDMX que mencionan COVID-19 como causa de muerte.",
+       subtitle = "N鷐ero de actas de defunci髇 del que mencionan*: COVID-19, insuficiencia respiratoria, neumon韆 at韕ica y neumon韆 viral\nabril y mayo 2020, CMDX",
+       caption = "Fuente: Elaboraci髇 propia con datos de la Direcci髇 General del Registro Civil.\n*Contienen t閞minos (COV o CORONAVIRUS), (NEU y ATIP), (NEU y VIRAL) o (INSUF y RESP) respectivamente.\nUna acta de defunci髇 puede mencionar una o varias causas de muerte.",
        x= "",
-       y= "")
+       y= "") +
+  guides(fill = FALSE) +
+  theme_light() 

@@ -1,43 +1,60 @@
-# CHART 2
 library(data.table)
 library(lubridate)
 library(patchwork)
+library(ggplot2)
 
-df <- fread("data/defun.csv")
+df <- fread("defun.csv")
 df$fecha_defun <- dmy(df$fecha_defun)
 df$month <- month(df$fecha_defun)
 df$year <- year(df$fecha_defun)
 
-deaths_by_month <- df[,.N, by=.(year, month)]
-promedio_3_meses <- deaths_by_month[year==2020 & month %in% c(1,2,3), mean(N)]
+enfermedades <- c("Covid", "Insuficiencia_respiratoria", "Neumonia_atipica", "Neumonia_viral")
+enf_factor <- factor(enfermedades, levels = enfermedades,  labels = c("COVID-19", 
+                                                                      "Insuficiencia respiratoria",
+                                                                      "Neumon韆 at韕ica", 
+                                                                      "Neumon韆 viral"))
 
+# Filtra registros de enero, febreo y marzo 2020 del juzgado 51
+df_pre <- df[df$year == 2020 & df$month %in% c(2, 3) & df$juzgado == 51]
 
-p1 <- ggplot(deaths_by_month[year==2020,])+
-      aes(x=factor(month, labels=c("enero", "febrero", "marzo", "abril", "mayo")), y=N, label=scales::comma(N))+
-      geom_bar(stat="identity", fill="#66c2a5")+
-      geom_hline(yintercept=promedio_3_meses, color= "#555555", linetype="dashed", size=0.3)+
-      geom_text(color="black", vjust=1.2, size=3)+
-      scale_y_continuous(labels = scales::comma)+
-      labs(title = "Existe un excedente total de 3,786 actas de defunci贸n en abril y mayo ",
-           subtitle= "N煤mero de actas de defunci贸n por mes, Juzgado 51, Ciudad de M茅xico, 2020 ",
-           x= "",
-           y= "")+
-      theme_light()
-    
-    
-p2 <- 
-  ggplot(deaths_by_month[year==2020,])+
-  aes(x=factor(month, labels=c("enero", "febrero", "marzo", "abril", "mayo")), N-promedio_3_meses, label=scales::comma(N-promedio_3_meses))+
-  geom_bar(stat="identity", fill="#66c2a5")+
-  geom_text(color="black", vjust=1.2, size=3)+
-  scale_y_continuous(labels = scales::comma)+
-  labs(title = "",
-       subtitle= "Desviaci贸n respecto a la media del primer trimestre, Juzgado 51, Ciudad de M茅xico, 2020",
-       caption = "Fuente: Elaboraci贸n propia con datos de la Direcci贸n General del Registro Civil de la Ciudad de M茅xico.\n
-       *La l铆nea rayada en la primera gr谩fica representa la media del primer trimestre del 2020.",
+# Tabla de frecuencias de menciones por enfermedad pre-pandemia
+freq1_ <- as.numeric(lapply(df_pre[, enfermedades, with = FALSE], sum))
+freq1 <- data.table(causa = enf_factor, N = as.numeric(freq1_))
+
+p1 <- ggplot(freq1, 
+             aes(x = causa, y = N, fill = causa, label = N)) +
+  geom_bar(stat = "identity") +
+  scale_y_continuous(labels = scales::comma, limits = c(0, 2500)) +
+  scale_fill_manual(values = c("#66c2a5", "#fc8d62", "#8da0cb", "#e78ac3")) +
+  geom_text(color = "black", size = 4, position = position_stack(vjust = .8)) +
+  labs(title = "En el Juzgado 51, estas causas de muerte han incrementado considerablemente",
+       subtitle = "N鷐ero de actas de defunci髇 del Juzgado 51 que mencionan*: COVID-19, insuficiencia respiratoria, neumon韆 at韕ica y neumon韆 viral\n\nfebrero y marzo 2020, Juzgado 51",
+       caption = "",
        x= "",
-       y= "")+
-  theme_light()
+       y= "") +
+  guides(fill = FALSE) +
+  theme_light() 
+
+# Filtra registros de abril y mayo 2020 del juzgado 51
+df_pandemia <- df[df$year == 2020 & df$month %in% c(4, 5) & df$juzgado == 51]
+
+# Tabla de frecuencias de menciones por enfermedad durante pandemia
+freq2_ <- as.numeric(lapply(df_pandemia[, enfermedades, with = FALSE], sum))
+freq2 <- data.table(causa = enf_factor, N = as.numeric(freq2_))
+
+p2 <- ggplot(freq2, 
+             aes(x = causa, y = N, fill = causa, label = scales::comma(N))) +
+  geom_bar(stat = "identity") +
+  scale_y_continuous(labels = scales::comma, limits = c(0, 2500)) +
+  scale_fill_manual(values = c("#66c2a5", "#fc8d62", "#8da0cb", "#e78ac3")) +
+  geom_text(color = "black", size = 4, position = position_stack(vjust = .8)) +
+  labs(title = "",
+       subtitle = "abril y mayo 2020, Juzgado 51",
+       caption = "Fuente: Elaboraci髇 propia con datos de la Direcci髇 General del Registro Civil.\n*Contienen t閞minos (COV o CORONAVIRUS), (NEU y ATIP), (NEU y VIRAL) o (INSUF y RESP) respectivamente.\nUna acta de defunci髇 puede mencionar una o varias causas de muerte.",
+       x= "",
+       y= "") +
+  guides(fill = FALSE) +
+  theme_light() 
 
 p <- p1/p2
 
