@@ -50,7 +50,7 @@ p2 <- ggplot(freq2,
   geom_text(color = "black", size = 4, position = position_stack(vjust = .8)) +
   labs(title = "",
        subtitle = "abril y mayo 2020, Juzgado 51",
-       caption = "Fuente: Elaboración propia con datos de la Dirección General del Registro Civil.\n*Contienen términos (COV o CORONAVIRUS), (NEU y ATIP), (NEU y VIRAL) o (INSUF y RESP) respectivamente.\nUna acta de defunción puede mencionar una o varias causas de muerte.",
+       caption = "Fuente: Elaboración propia con datos de la Dirección General del Registro Civil.\n*Contienen términos (COV o CORONAVIRUS), (NEU y ATIP), (NEU y VIRAL) o (INSUF y RESP) respectivamente.\nUn acta de defunción puede mencionar una o varias causas de muerte.",
        x= "",
        y= "") +
   guides(fill = FALSE) +

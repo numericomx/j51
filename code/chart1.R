@@ -28,7 +28,7 @@ ggplot(freq,
   geom_text(color = "black", size = 4, position = position_stack(vjust = .8)) +
   labs(title = "Hay 6,488 actas de defunción de la CDMX que mencionan COVID-19 como causa de muerte.",
        subtitle = "Número de actas de defunción del que mencionan*: COVID-19, insuficiencia respiratoria, neumonía atípica y neumonía viral\nabril y mayo 2020, CMDX",
-       caption = "Fuente: Elaboración propia con datos de la Dirección General del Registro Civil.\n*Contienen términos (COV o CORONAVIRUS), (NEU y ATIP), (NEU y VIRAL) o (INSUF y RESP) respectivamente.\nUna acta de defunción puede mencionar una o varias causas de muerte.",
+       caption = "Fuente: Elaboración propia con datos de la Dirección General del Registro Civil.\n*Contienen términos (COV o CORONAVIRUS), (NEU y ATIP), (NEU y VIRAL) o (INSUF y RESP) respectivamente.\nUn acta de defunción puede mencionar una o varias causas de muerte.",
        x= "",
        y= "") +
   guides(fill = FALSE) +
