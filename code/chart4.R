@@ -8,17 +8,15 @@ df$fecha_defun <- dmy(df$fecha_defun)
 df$month <- month(df$fecha_defun)
 df$year <- year(df$fecha_defun)
 
-# Filtra registros de abril y mayo 2020
-df_j51 <- df[df$year == 2020 & df$month %in% c(4, 5)]
+# Filtra decesos de abril y mayo 2020
+df_pandemia <- df[df$fecha_defun >= "2020-04-01"]
 
-df_j51$covneum <- df_j51$Covid == 1
+# Decesos por mes COVID-19 VS Otros
+decesos_mensuales <- df_pandemia[, .N, by = .(month, Covid)]
+decesos_mensuales$Covid <- factor(decesos_mensuales$Covid, levels = c(1, 0), labels = c("Mencionan COVID-19", "Sin mención de COVID-19"))
 
-# Muertes por mes COVID-19 VS Otros
-deaths_by_month <- df_j51[, .N, by = .(month, covneum)]
-deaths_by_month$covid <- factor(deaths_by_month$covneum, levels = c(TRUE, FALSE), labels = c("Mencionan COVID-19", "Sin mención de COVID-19"))
-
-p1 <- ggplot(deaths_by_month) +
-  aes(x = factor(month, labels = c("abril", "mayo")), N, fill = covid, label = scales::comma(N)) +
+p1 <- ggplot(decesos_mensuales) +
+  aes(x = factor(month, labels = c("abril", "mayo")), N, fill = Covid, label = scales::comma(N)) +
   geom_bar(stat = "identity") +
   scale_y_continuous(labels = scales::comma) +
   scale_fill_manual(values = c("#66c2a5", "#b6e2d4")) +
@@ -31,17 +29,13 @@ p1 <- ggplot(deaths_by_month) +
   guides(fill = guide_legend(title = "")) +
   theme_light()
 
-# Filtra registros de abril y mayo 2020
-df_j51 <- df[df$year == 2020 & df$month %in% c(4, 5)]
+# Decesos por mes COVID-19 + Neumonía atípica + Neumonía viral VS Otros
+df_pandemia$Covid_o_neumonia <- df_pandemia$Covid | df_pandemia$Neumonia_atipica |  df_pandemia$Neumonia_viral 
+decesos_mensuales <- df_pandemia[, .N, by = .(month, Covid_o_neumonia)]
+decesos_mensuales$Covid_o_neumonia <- factor(decesos_mensuales$Covid_o_neumonia, levels = c(TRUE, FALSE), labels = c("COVID-19, \nNeumonía atípica o \nNeumonía viral", "Sin mención de las anteriores"))
 
-df_j51$covneum <- df_j51$Covid | df_j51$Neumonia_atipica |  df_j51$Neumonia_viral 
-
-# Muertes por mes COVID-19 + Neumonía atípica + Neumonía viral VS Otros
-deaths_by_month <- df_j51[, .N, by = .(month, covneum)]
-deaths_by_month$covid <- factor(deaths_by_month$covneum, levels = c(TRUE, FALSE), labels = c("COVID-19, \nNeumonía atípica o \nNeumonía viral", "Sin mención de las anteriores"))
-
-p2 <- ggplot(deaths_by_month) +
-  aes(x = factor(month, labels = c("abril", "mayo")), N, fill = covid, label = scales::comma(N, accuracy=1)) +
+p2 <- ggplot(decesos_mensuales) +
+  aes(x = factor(month, labels = c("abril", "mayo")), N, fill = Covid_o_neumonia, label = scales::comma(N, accuracy=1)) +
   geom_bar(stat = "identity") +
   scale_y_continuous(labels = scales::comma) +
   scale_fill_manual(values = c("#66c2a5", "#b6e2d4")) +

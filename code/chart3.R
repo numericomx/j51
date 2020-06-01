@@ -8,15 +8,16 @@ df$fecha_defun <- dmy(df$fecha_defun)
 df$month <- month(df$fecha_defun)
 df$year <- year(df$fecha_defun)
 
-# Filtra registros de abril y mayo 2020
-df <- df[df$year == 2020 & df$month %in% c(4, 5)]
+# Filtra decesos de abril y mayo 2020
+df_pandemia <- df[df$fecha_defun >= "2020-04-01"]
 
 enfermedades <- c("COVID-19", "Insuficiencia respiratoria", "Neumonía atípica", "Neumonía viral")
-setnames(df, old = c("Covid", "Insuficiencia_respiratoria", "Neumonia_atipica", "Neumonia_viral"), new = enfermedades)
+setnames(df_pandemia, old = c("Covid", "Insuficiencia_respiratoria", "Neumonia_atipica", "Neumonia_viral"), new = enfermedades)
 
-upset(df, 
+upset(df_pandemia, 
       sets = enfermedades, 
-      sets.bar.color = "black",
+      sets.bar.color = "#b3b3b3ff",
+      main.bar.color = "#66c2a5ff",
       order.by = "freq", 
       point.size = 3.5, 
       line.size = 2, 

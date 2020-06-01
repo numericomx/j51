@@ -8,20 +8,20 @@ df$fecha_defun <- dmy(df$fecha_defun)
 df$month <- month(df$fecha_defun)
 df$year <- year(df$fecha_defun)
 
-enfermedades <- c("Covid", "Insuficiencia_respiratoria", "Neumonia_atipica", "Neumonia_viral")
-enf_factor <- factor(enfermedades, levels = enfermedades,  labels = c("COVID-19", 
+causas <- c("Covid", "Insuficiencia_respiratoria", "Neumonia_atipica", "Neumonia_viral")
+enf_factor <- factor(causas, levels = causas,  labels = c("COVID-19", 
                                                                       "Insuficiencia respiratoria",
                                                                       "Neumonía atípica", 
                                                                       "Neumonía viral"))
 
-# Filtra registros de enero, febreo y marzo 2020 del juzgado 51
-df_pre <- df[df$year == 2020 & df$month %in% c(2, 3) & df$juzgado == 51]
+# Filtra decesos de febrero y marzo 2020 del juzgado 51
+df_pre <- df[df$fecha_defun >= "2020-02-01" & df$fecha_defun <= "2020-03-31" & df$juzgado == 51]
 
-# Tabla de frecuencias de menciones por enfermedad pre-pandemia
-freq1_ <- as.numeric(lapply(df_pre[, enfermedades, with = FALSE], sum))
-freq1 <- data.table(causa = enf_factor, N = as.numeric(freq1_))
+# Decesos pre-pandemia por causa
+decesos_por_causa_ <- as.numeric(lapply(df_pre[, causas, with = FALSE], sum))
+decesos_por_causa <- data.table(causa = enf_factor, N = as.numeric(decesos_por_causa_))
 
-p1 <- ggplot(freq1, 
+p1 <- ggplot(decesos_por_causa, 
              aes(x = causa, y = N, fill = causa, label = N)) +
   geom_bar(stat = "identity") +
   scale_y_continuous(labels = scales::comma, limits = c(0, 2500)) +
@@ -35,14 +35,14 @@ p1 <- ggplot(freq1,
   guides(fill = FALSE) +
   theme_light() 
 
-# Filtra registros de abril y mayo 2020 del juzgado 51
-df_pandemia <- df[df$year == 2020 & df$month %in% c(4, 5) & df$juzgado == 51]
+# Filtra decesos de abril y mayo 2020 del juzgado 51
+df_pandemia <- df[df$fecha_defun >= "2020-04-01" & df$juzgado == 51]
 
-# Tabla de frecuencias de menciones por enfermedad durante pandemia
-freq2_ <- as.numeric(lapply(df_pandemia[, enfermedades, with = FALSE], sum))
-freq2 <- data.table(causa = enf_factor, N = as.numeric(freq2_))
+# Decesos durante pandemia por causa
+decesos_por_causa_ <- as.numeric(lapply(df_pandemia[, causas, with = FALSE], sum))
+decesos_por_causa <- data.table(causa = enf_factor, N = as.numeric(decesos_por_causa_))
 
-p2 <- ggplot(freq2, 
+p2 <- ggplot(decesos_por_causa, 
              aes(x = causa, y = N, fill = causa, label = scales::comma(N))) +
   geom_bar(stat = "identity") +
   scale_y_continuous(labels = scales::comma, limits = c(0, 2500)) +
