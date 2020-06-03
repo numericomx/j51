@@ -21,7 +21,7 @@ p1 <- ggplot(df, aes(x = fecha_defun)) +
   scale_color_discrete(name = "Y series", labels = c("Y2", "Y1")) +
   scale_y_continuous(labels = scales::comma) +
   labs(title = "Una curva alternativa",
-       subtitle = "abril 1° 2020 - mayo 15 2020, CDMX\n\nFallecimientos acumulados diarios",
+       subtitle = "abril 1° 2020 - mayo 25 2020, CDMX\n\nFallecimientos acumulados diarios",
        caption = "",
        x = "",
        y = "") +
@@ -43,7 +43,7 @@ p2 <- ggplot(df, aes(x = fecha_defun)) +
        caption = "La línea rayada en la segunda gráfica representa el día con mayor número de fallecimientos.\nFuente: Elaboración propia con datos de la Dirección General del Registro Civil y datos abiertos de la Dirección General de Epidemiología.\n*Contienen términos (COV o CORONAVIRUS).\n**Contienen términos (COV o CORONAVIRUS), (NEU y ATIP) o (NEU y VIRAL).",
        x = "",
        y = "") +
-  geom_vline(xintercept = as.Date("2020-05-05"), color = "#555555", linetype = "dashed", size = 0.5) +
+  geom_vline(xintercept = as.Date("2020-05-18"), color = "#555555", linetype = "dashed", size = 0.5) +
   theme_light() 
 
 p <- p1/p2

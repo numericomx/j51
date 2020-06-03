@@ -6,10 +6,9 @@ library(ggplot2)
 df <- fread("defun.csv")
 df$fecha_defun <- dmy(df$fecha_defun)
 df$month <- month(df$fecha_defun)
-df$year <- year(df$fecha_defun)
 
 # Filtra decesos de abril y mayo 2020
-df_pandemia <- df[df$fecha_defun >= "2020-04-01"]
+df_pandemia <- df[df$fecha_defun >= "2020-04-01" & df$fecha_defun <= "2020-05-25"]
 
 # Decesos por mes COVID-19 VS Otros
 decesos_mensuales <- df_pandemia[, .N, by = .(month, Covid)]
@@ -25,7 +24,7 @@ p1 <- ggplot(decesos_mensuales) +
        subtitle = "Número actas de defunción que mencionan* a COVID-19",
        x = "",
        y = "",
-       caption = "")+
+       caption = "") +
   guides(fill = guide_legend(title = "")) +
   theme_light()
 

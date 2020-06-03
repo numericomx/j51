@@ -5,11 +5,9 @@ library(UpSetR)
 
 df <- fread("defun.csv")
 df$fecha_defun <- dmy(df$fecha_defun)
-df$month <- month(df$fecha_defun)
-df$year <- year(df$fecha_defun)
 
 # Filtra decesos de abril y mayo 2020
-df_pandemia <- df[df$fecha_defun >= "2020-04-01"]
+df_pandemia <- df[df$fecha_defun >= "2020-04-01" & df$fecha_defun <= "2020-05-25"]
 
 enfermedades <- c("COVID-19", "Insuficiencia respiratoria", "Neumonía atípica", "Neumonía viral")
 setnames(df_pandemia, old = c("Covid", "Insuficiencia_respiratoria", "Neumonia_atipica", "Neumonia_viral"), new = enfermedades)
