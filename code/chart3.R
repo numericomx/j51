@@ -19,5 +19,5 @@ upset(df_pandemia,
       order.by = "freq", 
       point.size = 3.5, 
       line.size = 2, 
-      mainbar.y.label = "Tamaño de la insersección", sets.x.label = "Total de actas por causa", 
+      mainbar.y.label = "Tamaño de la intersección", sets.x.label = "Total de actas por causa", 
       text.scale = c(1.25, 1.5, 1.25, 1.5, 1.5, 1.5))
